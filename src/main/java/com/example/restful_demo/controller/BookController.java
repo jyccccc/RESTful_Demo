@@ -5,10 +5,9 @@ import com.example.restful_demo.model.Book;
 import com.example.restful_demo.Service.BookService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
@@ -20,17 +19,33 @@ public class BookController {
     @Autowired
     BookMapper bookMapper;
 
-    @GetMapping("/book")
-    public List<Book> showBooks() {
+
+    @GetMapping("/books/{id}")
+    public Book getBooks(@PathVariable Long id) {
+        Book book = bookMapper.selectByPrimaryKey(id);
+        return book;
+    }
+
+    @GetMapping("/books")
+    public List<Book> getPageBooks(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        List<Book> pageBooks = bookService.getPageBooks(pageNum, pageSize);
+        return pageBooks;
+    }
+
+    @GetMapping("/books/all")
+    public List<Book> getAllBooks() {
         List<Book> bookList = bookService.selectAllBooks();
         return bookList;
     }
 
-    @PostMapping("/book")
-    public Object insertBook(Book book) {
+    @PostMapping("/books")
+    public Object insertBook(Book book, HttpServletResponse response) {
         Book record = new Book();
         BeanUtils.copyProperties(book,record);
-        bookMapper.insert(record);
+        if (bookMapper.insert(record) != -1) {
+            // 新建数据成功
+            response.setStatus(201);
+        };
         return null;
     }
 }
